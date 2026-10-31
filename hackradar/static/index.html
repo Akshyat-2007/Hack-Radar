@@ -863,37 +863,48 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      min-width: 50px;
-      height: 52px;
-      background: rgba(18, 20, 26, 0.9);
+      justify-content: flex-start;
+      width: 52px;
+      min-width: 52px;
+      height: 54px;
+      background: #11141d;
       border: 1px solid rgba(255, 42, 75, 0.45);
-      border-radius: 10px;
+      border-radius: 9px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 10px rgba(255, 42, 75, 0.2);
       overflow: hidden;
       flex-shrink: 0;
+      padding: 0;
+      margin: 0;
     }
 
     .cal-ribbon {
       width: 100%;
       background: linear-gradient(135deg, #ff2a4b, #dc2626);
       color: #ffffff;
-      font-size: 0.65rem;
+      font-size: 0.62rem;
       font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.08em;
       text-align: center;
-      padding: 0.12rem 0;
-      line-height: 1.2;
+      padding: 3px 0;
+      line-height: 1;
+      margin: 0;
+      box-sizing: border-box;
     }
 
     .cal-number {
       color: #ffffff;
-      font-size: 1.15rem;
+      font-size: 1.25rem;
       font-weight: 800;
       font-family: 'JetBrains Mono', monospace;
-      line-height: 1.25;
-      padding-top: 0.15rem;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      width: 100%;
+      margin: 0;
+      padding: 0;
     }
 
     .date-schedule-info {
@@ -2030,6 +2041,36 @@
       }
     }
 
+    // Helper: Normalize mode string
+    function normalizeMode(m) {
+      if (!m) return "online";
+      const s = String(m).toLowerCase().trim();
+      if (s.includes("hybrid")) return "hybrid";
+      if (s.includes("in-person") || s.includes("in person") || s.includes("offline") || s.includes("on-site") || s.includes("onsite") || s.includes("physical") || s.includes("venue")) {
+        return "in-person";
+      }
+      return "online";
+    }
+
+    // Helper: format dates nicely (e.g. "Nov 5 – Nov 6, 2026")
+    function formatDateText(startStr, endStr) {
+      if (!startStr && !endStr) return "Dates TBD";
+      if (startStr && !endStr) {
+        const d = new Date(startStr);
+        return !isNaN(d.getTime()) ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : startStr;
+      }
+      const d1 = new Date(startStr);
+      const d2 = new Date(endStr);
+      if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return `${startStr} to ${endStr}`;
+      
+      const m1 = d1.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const m2 = d2.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      if (d1.getFullYear() === d2.getFullYear()) {
+        return `${m1} – ${m2}`;
+      }
+      return `${d1.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} – ${m2}`;
+    }
+
     // Filter events based on active tab
     function getFilteredEvents() {
       if (activeTab === "all") return allEvents;
@@ -2039,14 +2080,20 @@
         const curMonth = now.getMonth();
         const curYear = now.getFullYear();
         return allEvents.filter(ev => {
-          if (!ev.start_date) return false;
-          const d = new Date(ev.start_date);
-          return !isNaN(d.getTime()) && d.getMonth() === curMonth && d.getFullYear() === curYear;
+          const d1 = ev.start_date ? new Date(ev.start_date) : null;
+          const d2 = ev.end_date ? new Date(ev.end_date) : null;
+          const dDead = ev.registration_deadline ? new Date(ev.registration_deadline) : null;
+          const inMonth = (d) => d && !isNaN(d.getTime()) && d.getMonth() === curMonth && d.getFullYear() === curYear;
+          const spansMonth = (d1 && d2 && d1.getTime() <= now.getTime() && d2.getTime() >= now.getTime());
+          return inMonth(d1) || inMonth(d2) || inMonth(dDead) || spansMonth;
         });
       }
 
       if (activeTab === "near") {
         return allEvents.filter(ev => {
+          const m = normalizeMode(ev.mode);
+          // Near Me ONLY shows in-person and hybrid events in the user's city/state!
+          if (m === "online") return false;
           const city = (ev.city || "").toLowerCase();
           return userCity && (city.includes(userCity) || userCity.includes(city));
         });
@@ -2054,7 +2101,7 @@
 
       if (activeTab === "online") {
         return allEvents.filter(ev => {
-          const m = (ev.mode || "").toLowerCase();
+          const m = normalizeMode(ev.mode);
           return m === "online" || m === "hybrid";
         });
       }
@@ -2063,7 +2110,8 @@
         return allEvents.filter(ev => {
           const n = (ev.name || "").toLowerCase();
           const org = (ev.organizer || "").toLowerCase();
-          return n.includes("national") || n.includes("india") || org.includes("ministry") || org.includes("aicte");
+          const elig = (ev.eligibility_text || "").toLowerCase();
+          return n.includes("national") || n.includes("india") || org.includes("ministry") || org.includes("aicte") || elig.includes("across india") || elig.includes("pan-india");
         });
       }
 
@@ -2072,26 +2120,38 @@
 
     // Render cards and update tab counts
     function renderCards() {
+      const now = new Date();
+      const curMonth = now.getMonth();
+      const curYear = now.getFullYear();
+
       // Update tab counts
       const countAll = allEvents.length;
       const countThisMonth = allEvents.filter(ev => {
-        if (!ev.start_date) return false;
-        const d = new Date(ev.start_date);
-        const now = new Date();
-        return !isNaN(d.getTime()) && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        const d1 = ev.start_date ? new Date(ev.start_date) : null;
+        const d2 = ev.end_date ? new Date(ev.end_date) : null;
+        const dDead = ev.registration_deadline ? new Date(ev.registration_deadline) : null;
+        const inMonth = (d) => d && !isNaN(d.getTime()) && d.getMonth() === curMonth && d.getFullYear() === curYear;
+        const spansMonth = (d1 && d2 && d1.getTime() <= now.getTime() && d2.getTime() >= now.getTime());
+        return inMonth(d1) || inMonth(d2) || inMonth(dDead) || spansMonth;
       }).length;
+
       const countNear = allEvents.filter(ev => {
+        const m = normalizeMode(ev.mode);
+        if (m === "online") return false;
         const city = (ev.city || "").toLowerCase();
         return userCity && (city.includes(userCity) || userCity.includes(city));
       }).length;
+
       const countOnline = allEvents.filter(ev => {
-        const m = (ev.mode || "").toLowerCase();
+        const m = normalizeMode(ev.mode);
         return m === "online" || m === "hybrid";
       }).length;
+
       const countNational = allEvents.filter(ev => {
         const n = (ev.name || "").toLowerCase();
         const org = (ev.organizer || "").toLowerCase();
-        return n.includes("national") || n.includes("india") || org.includes("ministry") || org.includes("aicte");
+        const elig = (ev.eligibility_text || "").toLowerCase();
+        return n.includes("national") || n.includes("india") || org.includes("ministry") || org.includes("aicte") || elig.includes("across india") || elig.includes("pan-india");
       }).length;
 
       document.getElementById("countAll").textContent = countAll;
@@ -2161,7 +2221,7 @@
 
     // Create Card HTML
     function createCardHTML(ev) {
-      const mode = (ev.mode || "online").toLowerCase();
+      const mode = normalizeMode(ev.mode);
       let modeBadgeClass = "mode-online";
       let modeLabel = "Online";
       if (mode === "in-person") {
@@ -2174,21 +2234,42 @@
 
       const score = ev.fit_score || 0;
       const scoreColor = getScoreColor(score);
-      const datesText = (ev.start_date && ev.end_date) ? `${ev.start_date} to ${ev.end_date}` : (ev.start_date || "Dates TBD");
+      const datesText = formatDateText(ev.start_date, ev.end_date);
       const prizeText = ev.prize || "Prizes & Recognition";
       const deadlineHTML = getDeadlineToHTML(ev.registration_deadline || ev.end_date);
 
-      // Calendar tile values
+      // Calendar tile values (Intelligently handle ongoing hackathons so past dates don't appear)
       let monthStr = "EVENT";
       let dayStr = "—";
       let durationStr = "Sprint";
+      const now = new Date();
       
+      // Determine effective display date
+      let displayDate = null;
       if (ev.start_date) {
-        const d = new Date(ev.start_date);
-        if (!isNaN(d.getTime())) {
-          monthStr = d.toLocaleString('en-US', { month: 'short' }).toUpperCase();
-          dayStr = d.getDate();
+        const dStart = new Date(ev.start_date);
+        if (!isNaN(dStart.getTime())) {
+          if (dStart >= now) {
+            displayDate = dStart;
+          } else {
+            // Started in past: use upcoming registration deadline or end date if available
+            if (ev.registration_deadline && new Date(ev.registration_deadline) >= now) {
+              displayDate = new Date(ev.registration_deadline);
+            } else if (ev.end_date && new Date(ev.end_date) >= now) {
+              displayDate = new Date(ev.end_date);
+            } else {
+              displayDate = dStart;
+            }
+          }
         }
+      } else if (ev.registration_deadline) {
+        const dDead = new Date(ev.registration_deadline);
+        if (!isNaN(dDead.getTime())) displayDate = dDead;
+      }
+
+      if (displayDate) {
+        monthStr = displayDate.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+        dayStr = displayDate.getDate();
       }
       
       if (ev.start_date && ev.end_date) {

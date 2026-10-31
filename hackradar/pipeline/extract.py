@@ -30,14 +30,17 @@ Page Content:
 async def extract_events_from_pages(
     pages: list[tuple[SearchHit, str]],
     llm: LLMProvider,
-    max_concurrency: int = 4,
-    max_llm_calls: int = 15,
+    max_concurrency: int = 2,
+    max_llm_calls: int = 6,
 ) -> list[ExtractedEvent]:
-    """Extract and validate ExtractedEvent instances from markdown pages in parallel."""
+    """Extract and validate ExtractedEvent instances from markdown pages in parallel with rate-limit pacing."""
     target_pages = pages[:max_llm_calls]
     semaphore = asyncio.Semaphore(max_concurrency)
 
-    async def _extract_single(hit: SearchHit, markdown: str) -> list[ExtractedEvent]:
+    async def _extract_single(hit: SearchHit, markdown: str, idx: int) -> list[ExtractedEvent]:
+        # Stagger start to avoid rate limit spikes
+        if idx > 0:
+            await asyncio.sleep(idx * 0.35)
         async with semaphore:
             prompt = EXTRACTION_PROMPT_TEMPLATE.format(
                 url=hit.url,
@@ -67,7 +70,7 @@ async def extract_events_from_pages(
                 logger.warning(f"Extraction or validation failed for {hit.url}: {e}")
                 return []
 
-    tasks = [_extract_single(hit, text) for hit, text in target_pages]
+    tasks = [_extract_single(hit, text, i) for i, (hit, text) in enumerate(target_pages)]
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
     extracted: list[ExtractedEvent] = []
