@@ -1,0 +1,19 @@
+{
+  "name": "quad-ai",
+  "version": "1.0.0",
+  "description": "An intelligent hackathon finder web app that scans, verifies, eligibility-checks, and ranks hackathons based on user academic profile, skills, and location.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@hugeicons/core-free-icons": "^4.4.0",
+    "@hugeicons/react": "^1.1.10",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  }
+}

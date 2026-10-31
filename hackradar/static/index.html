@@ -1,0 +1,2858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HackRadar - Intelligent Hackathon Engine</title>
+  <link rel="icon" type="image/png" href="/static/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0b0d11;
+      --card-bg: rgba(18, 20, 26, 0.14);
+      --card-border: rgba(255, 255, 255, 0.12);
+      --card-hover-border: rgba(255, 42, 75, 0.55);
+      --accent-red: #ff2a4b;
+      --accent-crimson: #ef4444;
+      --accent-ruby: #dc2626;
+      --accent-coral: #ff5c75;
+      --accent-white: #ffffff;
+      --accent-cyan: #38bdf8;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --text-main: #f8fafc;
+      --text-muted: #cbd5e1;
+      --text-dim: #94a3b8;
+      --input-bg: rgba(255, 255, 255, 0.04);
+      --input-border: rgba(255, 255, 255, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      line-height: 1.5;
+      position: relative;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(ellipse at 15% 0%, rgba(239, 68, 68, 0.14) 0%, transparent 60%),
+        radial-gradient(ellipse at 85% 10%, rgba(255, 42, 75, 0.09) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 100%, rgba(220, 38, 38, 0.08) 0%, transparent 60%);
+    }
+
+    /* Antigravity WebGL Canvas Background */
+    .antigravity-background {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .antigravity-background canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Header */
+    header {
+      border-bottom: 1px solid rgba(255, 42, 75, 0.2);
+      background: rgba(11, 13, 17, 0.55);
+      backdrop-filter: blur(14px) saturate(160%);
+      -webkit-backdrop-filter: blur(14px) saturate(160%);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 0.75rem 1.5rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 30px rgba(239, 68, 68, 0.08);
+    }
+
+    .nav-container {
+      max-width: 1380px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo-group {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      text-decoration: none;
+    }
+
+    .nav-brand-img {
+      height: 44px;
+      width: auto;
+      object-fit: contain;
+      border-radius: 9px;
+      filter: drop-shadow(0 0 10px rgba(255, 42, 75, 0.5));
+      transition: transform 0.25s ease, filter 0.25s ease;
+    }
+
+    .nav-brand-img:hover {
+      transform: scale(1.05);
+      filter: drop-shadow(0 0 18px rgba(255, 42, 75, 0.75));
+    }
+
+    .logo-title {
+      font-size: 1.45rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      line-height: 1.1;
+    }
+
+    .logo-hack {
+      color: #ffffff;
+      font-weight: 800;
+    }
+
+    .logo-radar {
+      color: #ff2a4b;
+      font-weight: 800;
+      text-shadow: 0 0 16px rgba(255, 42, 75, 0.65), 0 0 30px rgba(239, 68, 68, 0.35);
+    }
+
+    .radar-live-blip {
+      width: 7px;
+      height: 7px;
+      background: #ff2a4b;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #ff2a4b;
+      display: inline-block;
+      animation: blip-pulse 1.8s infinite;
+    }
+
+    @keyframes blip-pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.6); opacity: 0.35; }
+    }
+
+    .tagline {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      font-weight: 500;
+      display: none;
+    }
+
+    @media (min-width: 640px) {
+      .tagline { display: block; margin-top: 0.15rem; }
+    }
+
+    .header-badges {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .mock-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(245, 158, 11, 0.12);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .mock-dot {
+      width: 6px;
+      height: 6px;
+      background-color: #f59e0b;
+      border-radius: 50%;
+      animation: pulse-dot 2s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* Main Container */
+    .app-container {
+      position: relative;
+      z-index: 10;
+      max-width: 1380px;
+      margin: 1.5rem auto;
+      padding: 0 1rem;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.75rem;
+    }
+
+    @media (min-width: 1024px) {
+      .app-container {
+        grid-template-columns: 420px 1fr;
+        align-items: start;
+        gap: 2rem;
+      }
+    }
+
+    /* Sidebar / Form Panel */
+    .form-panel {
+      background: var(--card-bg);
+      backdrop-filter: blur(4px) saturate(160%);
+      -webkit-backdrop-filter: blur(4px) saturate(160%);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.6rem;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 0 24px rgba(255, 42, 75, 0.08);
+      position: sticky;
+      top: 5rem;
+      z-index: 20;
+    }
+
+    @media (max-width: 1023px) {
+      .form-panel {
+        position: relative;
+        top: auto;
+      }
+    }
+
+    .panel-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+
+    .sample-btn {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(255, 42, 75, 0.35);
+      color: #ff5c75;
+      padding: 0.3rem 0.75rem;
+      font-size: 0.75rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .sample-btn:hover {
+      background: rgba(239, 68, 68, 0.25);
+      border-color: #ff2a4b;
+      color: #fff;
+      box-shadow: 0 0 14px rgba(255, 42, 75, 0.4);
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 1.1rem;
+    }
+
+    .form-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.85rem;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      position: relative;
+    }
+
+    label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    input, select, textarea {
+      width: 100%;
+      background: var(--input-bg);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      border: 1px solid var(--input-border);
+      border-radius: 8px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.875rem;
+      padding: 0.65rem 0.85rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: #ff2a4b;
+      box-shadow: 0 0 0 2px rgba(255, 42, 75, 0.25), 0 0 16px rgba(239, 68, 68, 0.3);
+    }
+
+    /* GlideSelect from React Bits */
+    .glide-select {
+      --gs-accent: #ff2a4b;
+      --gs-surface: rgba(255, 255, 255, 0.04);
+      --gs-highlight: rgba(239, 68, 68, 0.38);
+      --gs-text: #f8fafc;
+      --gs-radius: 10px;
+      --gs-inner-radius: 6px;
+      --gs-chip: 36px;
+      --gs-row: 32px;
+      --gs-font: 13px;
+      --gs-menu-w: 240px;
+      --gs-pop: 180ms;
+      --gs-pop-out: 120ms;
+      --gs-glide: 220ms;
+      --gs-origin: top left;
+      --gs-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+
+      position: relative;
+      display: block;
+      width: 100%;
+    }
+
+    .glide-select[data-disabled] {
+      opacity: 0.5;
+    }
+
+    .glide-select__trigger {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      width: 100%;
+      height: var(--gs-chip);
+      margin: 0;
+      padding: 0 12px;
+      border: 1px solid var(--input-border);
+      border-radius: 8px;
+      background: var(--gs-surface);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      color: var(--gs-text);
+      font-family: inherit;
+      font-size: var(--gs-font);
+      font-weight: 500;
+      line-height: 1;
+      cursor: pointer;
+      outline: none;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      transition:
+        background-color 100ms ease,
+        border-color 200ms ease,
+        box-shadow 200ms ease,
+        transform 160ms var(--gs-ease-out);
+    }
+
+    .glide-select__trigger:disabled {
+      cursor: default;
+    }
+
+    .glide-select__trigger:focus {
+      border-color: #ff2a4b;
+      box-shadow: 0 0 0 2px rgba(255, 42, 75, 0.25);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .glide-select__trigger:not(:disabled):hover {
+        background: rgba(239, 68, 68, 0.15);
+        border-color: #ff5c75;
+      }
+    }
+
+    .glide-select__trigger[aria-expanded='true'] {
+      background: rgba(239, 68, 68, 0.22);
+      border-color: #ff2a4b;
+      box-shadow: 0 0 12px rgba(255, 42, 75, 0.25);
+    }
+
+    .glide-select__trigger:not(:disabled):active {
+      transform: scale(0.985);
+    }
+
+    .glide-select__label {
+      display: block;
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .glide-select__label[data-empty] {
+      opacity: 0.6;
+    }
+
+    .glide-select[data-swap] .glide-select__label {
+      animation: gs-swap 160ms ease;
+    }
+
+    @keyframes gs-swap {
+      from {
+        opacity: 0.6;
+        filter: blur(2px);
+      }
+    }
+
+    .glide-select__chevron {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 6px;
+      color: color-mix(in srgb, var(--gs-text) 55%, transparent);
+      transition: transform 200ms var(--gs-ease-out);
+    }
+
+    .glide-select__trigger[aria-expanded='true'] .glide-select__chevron {
+      transform: rotate(180deg);
+    }
+
+    .glide-select__menu {
+      position: absolute;
+      z-index: 1000;
+      width: var(--gs-menu-w);
+      min-width: 100%;
+      max-height: 250px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 4px;
+      border-radius: var(--gs-radius);
+      background: rgba(15, 17, 23, 0.94);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 42, 75, 0.25);
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.8), 0 0 25px rgba(239, 68, 68, 0.2);
+      transform-origin: var(--gs-origin);
+      opacity: 0;
+      transform: scale(0.96);
+      pointer-events: none;
+      scrollbar-width: thin;
+      scrollbar-color: #ff2a4b rgba(15, 17, 23, 0.94);
+      transition:
+        opacity var(--gs-pop) var(--gs-ease-out),
+        transform var(--gs-pop) var(--gs-ease-out);
+    }
+
+    .glide-select__menu::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .glide-select__menu::-webkit-scrollbar-track {
+      background: rgba(15, 17, 23, 0.94);
+      border-radius: 4px;
+    }
+
+    .glide-select__menu::-webkit-scrollbar-thumb {
+      background: #2e3b52;
+      border-radius: 4px;
+    }
+
+    .glide-select__menu::-webkit-scrollbar-thumb:hover {
+      background: #ff2a4b;
+    }
+
+    .glide-select__menu[data-state='open'] {
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+    }
+
+    .glide-select__menu[data-state='closed'] {
+      transition-duration: var(--gs-pop-out);
+      pointer-events: none;
+    }
+
+    .glide-select__menu[data-side='bottom'] {
+      top: calc(100% + 6px);
+    }
+
+    .glide-select__menu[data-side='top'] {
+      bottom: calc(100% + 6px);
+    }
+
+    .glide-select__menu[data-align='left'] {
+      left: 0;
+      right: auto;
+    }
+
+    .glide-select__menu[data-align='right'] {
+      right: 0;
+      left: auto;
+    }
+
+    .glide-select__list {
+      position: relative;
+      display: grid;
+      gap: 1px;
+      touch-action: none;
+    }
+
+    .glide-select__pill {
+      position: absolute;
+      top: 0;
+      right: 0;
+      left: 0;
+      height: var(--gs-row);
+      border-radius: var(--gs-inner-radius);
+      background: var(--gs-highlight);
+      opacity: 0;
+      pointer-events: none;
+      transition:
+        transform var(--gs-glide) var(--gs-ease-out),
+        opacity 150ms ease;
+    }
+
+    .glide-select__option {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: var(--gs-row);
+      padding: 0 10px;
+      border-radius: var(--gs-inner-radius);
+      color: var(--gs-text);
+      font-size: var(--gs-font);
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: background-color 150ms ease;
+    }
+
+    .glide-select__option[aria-selected='true'] {
+      background: color-mix(in srgb, var(--gs-highlight) 60%, transparent);
+      color: #fff;
+    }
+
+    .glide-select__list[data-live] .glide-select__option[aria-selected='true'] {
+      background: transparent;
+    }
+
+    .glide-select__name {
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      font-weight: 500;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .glide-select__tag {
+      flex-shrink: 0;
+      color: #ff5c75;
+      background: rgba(255, 42, 75, 0.12);
+      border: 1px solid rgba(255, 42, 75, 0.25);
+      padding: 0.1rem 0.45rem;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: calc(var(--gs-font) - 2px);
+    }
+
+    .glide-select__check {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--gs-accent);
+      visibility: hidden;
+    }
+
+    .glide-select__check[data-on] {
+      visibility: visible;
+    }
+
+    .submit-btn {
+      margin-top: 0.75rem;
+      width: 100%;
+      background: linear-gradient(135deg, #ff2a4b 0%, #ef4444 50%, #dc2626 100%);
+      color: #fff;
+      border: 1px solid rgba(255, 42, 75, 0.3);
+      border-radius: 9px;
+      padding: 0.8rem 1rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 20px rgba(239, 68, 68, 0.45), 0 0 15px rgba(255, 42, 75, 0.35);
+    }
+
+    .submit-btn:hover {
+      opacity: 0.96;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 26px rgba(239, 68, 68, 0.65), 0 0 22px rgba(255, 42, 75, 0.5);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Right Results Column */
+    .results-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* Live Progress Feed */
+    .progress-box {
+      display: none;
+      background: rgba(18, 20, 26, 0.16);
+      backdrop-filter: blur(4px) saturate(160%);
+      -webkit-backdrop-filter: blur(4px) saturate(160%);
+      border: 1px solid rgba(255, 42, 75, 0.2);
+      border-radius: 14px;
+      padding: 1rem 1.25rem;
+      animation: fadeIn 0.3s ease;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 0 20px rgba(239, 68, 68, 0.08);
+    }
+
+    .progress-box.active {
+      display: block;
+    }
+
+    .progress-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+
+    .progress-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #ff5c75;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 42, 75, 0.2);
+      border-top-color: #ff2a4b;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .progress-log {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: #cbd5e1;
+      background: rgba(0, 0, 0, 0.35);
+      border-radius: 6px;
+      padding: 0.6rem 0.8rem;
+      max-height: 90px;
+      overflow-y: auto;
+      border-left: 2px solid #ff2a4b;
+    }
+
+    .progress-log div {
+      margin-bottom: 0.2rem;
+      line-height: 1.4;
+    }
+
+    /* Filters Bar */
+    .filters-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 0.75rem;
+    }
+
+    .tabs-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .tab-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn:hover {
+      color: #fff;
+      border-color: rgba(255, 42, 75, 0.4);
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.28), rgba(255, 42, 75, 0.16));
+      color: #fff;
+      border-color: rgba(255, 42, 75, 0.55);
+      box-shadow: 0 0 14px rgba(239, 68, 68, 0.3);
+    }
+
+    .results-count {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      font-weight: 500;
+    }
+
+    /* Cards Grid */
+    .cards-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.15rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(4px) saturate(160%);
+      -webkit-backdrop-filter: blur(4px) saturate(160%);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25), inset 0 1px 0 0 rgba(255, 255, 255, 0.22);
+      animation: slideUp 0.35s ease;
+    }
+
+    .card:hover {
+      background: rgba(28, 20, 24, 0.25);
+      border-color: rgba(255, 42, 75, 0.6);
+      transform: translateY(-3px);
+      box-shadow: 0 16px 40px 0 rgba(239, 68, 68, 0.28), inset 0 1px 0 0 rgba(255, 255, 255, 0.35), 0 0 20px rgba(255, 42, 75, 0.25);
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .card-title-group {
+      flex: 1;
+    }
+
+    .card-name {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.25rem;
+      line-height: 1.3;
+    }
+
+    .card-organizer {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .fit-badge-container {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      min-width: 90px;
+    }
+
+    .fit-score-value {
+      font-size: 1.15rem;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .fit-score-label {
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .fit-bar-bg {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      margin-top: 0.25rem;
+      overflow: hidden;
+    }
+
+    .fit-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.6s ease;
+    }
+
+    /* Meta details row */
+    .card-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.85rem;
+      margin-bottom: 0.85rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* Dedicated Date Section in Event Cards */
+    .card-date-section {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+      margin: 0.85rem 0;
+      transition: all 0.25s ease;
+    }
+
+    .card:hover .card-date-section {
+      background: rgba(239, 68, 68, 0.06);
+      border-color: rgba(255, 42, 75, 0.28);
+      box-shadow: 0 4px 16px rgba(239, 68, 68, 0.1);
+    }
+
+    .date-calendar-tile {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-width: 50px;
+      height: 52px;
+      background: rgba(18, 20, 26, 0.9);
+      border: 1px solid rgba(255, 42, 75, 0.45);
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 10px rgba(255, 42, 75, 0.2);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .cal-ribbon {
+      width: 100%;
+      background: linear-gradient(135deg, #ff2a4b, #dc2626);
+      color: #ffffff;
+      font-size: 0.65rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      text-align: center;
+      padding: 0.12rem 0;
+      line-height: 1.2;
+    }
+
+    .cal-number {
+      color: #ffffff;
+      font-size: 1.15rem;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      line-height: 1.25;
+      padding-top: 0.15rem;
+    }
+
+    .date-schedule-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .date-row-main {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .date-heading-label {
+      color: var(--text-dim);
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .date-range-text {
+      color: #ffffff;
+      font-size: 0.875rem;
+      font-weight: 700;
+    }
+
+    .date-duration-tag {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #ff5c75;
+      background: rgba(255, 42, 75, 0.12);
+      border: 1px solid rgba(255, 42, 75, 0.28);
+      padding: 0.1rem 0.5rem;
+      border-radius: 9999px;
+    }
+
+    .date-row-sub {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.78rem;
+      flex-wrap: wrap;
+    }
+
+    .meta-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .mode-pill {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.15rem 0.55rem;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .mode-online {
+      background: rgba(6, 182, 212, 0.15);
+      color: #22d3ee;
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+
+    .mode-in-person {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .mode-hybrid {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .deadline-urgent {
+      background: rgba(244, 63, 94, 0.18);
+      color: #fb7185;
+      border: 1px solid rgba(244, 63, 94, 0.4);
+      padding: 0.15rem 0.55rem;
+      border-radius: 6px;
+      font-weight: 700;
+      animation: pulse-urgent 1.5s infinite;
+    }
+
+    @keyframes pulse-urgent {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.65; }
+    }
+
+    .deadline-normal {
+      color: #94a3b8;
+    }
+
+    /* Reason box */
+    .reason-box {
+      background: rgba(239, 68, 68, 0.08);
+      border-left: 3px solid #ff2a4b;
+      border-radius: 0 8px 8px 0;
+      padding: 0.65rem 0.9rem;
+      margin-bottom: 0.85rem;
+      font-size: 0.825rem;
+      color: #cbd5e1;
+      line-height: 1.45;
+    }
+
+    .reason-box strong {
+      color: #ff5c75;
+    }
+
+    /* Flags & tags */
+    .flags-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+    }
+
+    .flag-chip {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #cbd5e1;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .flag-chip.warning {
+      background: rgba(245, 158, 11, 0.12);
+      color: #fbbf24;
+      border-color: rgba(245, 158, 11, 0.25);
+    }
+
+    .flag-chip.student {
+      background: rgba(239, 68, 68, 0.12);
+      color: #ff5c75;
+      border-color: rgba(255, 42, 75, 0.25);
+    }
+
+    /* Card Footer */
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 0.85rem;
+      margin-top: 0.4rem;
+    }
+
+    .prize-tag {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: #34d399;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .view-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: linear-gradient(135deg, #ff2a4b, #dc2626);
+      border: 1px solid rgba(255, 42, 75, 0.35);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.45rem 0.95rem;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: all 0.2s;
+      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+    }
+
+    .view-btn:hover {
+      background: linear-gradient(135deg, #ff4362, #ef4444);
+      border-color: #ff5c75;
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(255, 42, 75, 0.55);
+    }
+
+    /* Empty and Error states */
+    .empty-state {
+      background: rgba(18, 20, 26, 0.14);
+      backdrop-filter: blur(4px) saturate(160%);
+      -webkit-backdrop-filter: blur(4px) saturate(160%);
+      border: 1px dashed rgba(255, 42, 75, 0.3);
+      border-radius: 16px;
+      padding: 3.5rem 1.5rem;
+      text-align: center;
+      color: var(--text-dim);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .empty-icon {
+      width: 54px;
+      height: 54px;
+      margin: 0 auto 1.25rem;
+      opacity: 0.85;
+      stroke: #ff2a4b;
+      filter: drop-shadow(0 0 12px rgba(255, 42, 75, 0.45));
+    }
+
+    .empty-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 0.5rem;
+    }
+
+    .empty-subtitle {
+      font-size: 0.85rem;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .error-box {
+      background: rgba(244, 63, 94, 0.1);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      border-radius: 10px;
+      padding: 1rem;
+      color: #fb7185;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Antigravity Particle Field Background (from React Bits) -->
+  <div id="antigravityBg" class="antigravity-background">
+    <canvas id="antigravityCanvas"></canvas>
+  </div>
+
+  <!-- Top Navigation -->
+  <header>
+    <div class="nav-container">
+      <div class="logo-group">
+        <img src="/static/logo.png" alt="HackRadar Logo" class="nav-brand-img">
+        <div>
+          <div class="logo-title">
+            <span class="logo-hack">Hack</span><span class="logo-radar">Radar</span>
+            <span class="radar-live-blip" title="Radar Feed Active"></span>
+          </div>
+          <span class="tagline">Intelligent Hackathon Engine</span>
+        </div>
+      </div>
+      <div class="header-badges">
+        <div id="mockBadge" class="mock-badge" style="display: none;">
+          <span class="mock-dot"></span>
+          <span>Radar Demo Mode</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="app-container">
+    
+    <!-- Left Column: Profile Form -->
+    <aside class="form-panel">
+      <div class="panel-title">
+        <span>Your Profile</span>
+        <button type="button" class="sample-btn" id="loadSampleBtn">Sample Student</button>
+      </div>
+
+      <form id="profileForm" class="form-grid">
+        <div class="form-row-2">
+          <div class="field-group">
+            <label>Degree</label>
+            <div id="degreeGlideContainer"></div>
+            <input type="hidden" id="degree" value="B.Tech">
+          </div>
+          <div class="field-group">
+            <label>Stream / Branch</label>
+            <div id="streamGlideContainer"></div>
+            <input type="hidden" id="stream" value="CSE">
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="field-group">
+            <label>Year of Study</label>
+            <div id="yearGlideContainer"></div>
+            <input type="hidden" id="year" value="3">
+          </div>
+          <div class="field-group">
+            <label>Hub City</label>
+            <div id="cityGlideContainer"></div>
+            <input type="hidden" id="city" value="Bengaluru">
+            <input type="hidden" id="state" value="Karnataka">
+            <input type="hidden" id="country" value="India">
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="skills">Skills (comma separated)</label>
+          <input type="text" id="skills" placeholder="Python, FastAPI, React, PyTorch">
+        </div>
+
+        <div class="field-group">
+          <label for="interests">Interests & Themes</label>
+          <input type="text" id="interests" placeholder="Generative AI, Web3, Cybersecurity">
+        </div>
+
+        <div class="form-row-2">
+          <div class="field-group">
+            <label>Preferred Mode</label>
+            <div id="modeGlideContainer"></div>
+          </div>
+          <div class="field-group">
+            <label>Target Date / Month</label>
+            <div id="dateGlideContainer"></div>
+            <input type="hidden" id="targetDate" value="upcoming-30">
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="searchBtn">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path>
+          </svg>
+          <span>Find Hackathons</span>
+        </button>
+      </form>
+    </aside>
+
+    <!-- Right Column: Results & Progress -->
+    <section class="results-panel">
+
+      <!-- Live Streaming Progress Feed -->
+      <div class="progress-box" id="progressBox">
+        <div class="progress-header">
+          <div class="progress-title">
+            <div class="spinner"></div>
+            <span id="progressTitle">Scanning hackathons...</span>
+          </div>
+        </div>
+        <div class="progress-log" id="progressLog"></div>
+      </div>
+
+      <!-- Filters & Tabs Bar -->
+      <div class="filters-bar" id="filtersBar" style="display: none;">
+        <div class="tabs-group">
+          <button class="tab-btn active" data-tab="all">All (<span id="countAll">0</span>)</button>
+          <button class="tab-btn" data-tab="this-month">This Month (<span id="countThisMonth">0</span>)</button>
+          <button class="tab-btn" data-tab="near">Near Me (<span id="countNear">0</span>)</button>
+          <button class="tab-btn" data-tab="online">Online (<span id="countOnline">0</span>)</button>
+          <button class="tab-btn" data-tab="national">National (<span id="countNational">0</span>)</button>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+          <div id="sortGlideContainer" style="min-width: 175px;"></div>
+          <div class="results-count" id="summaryText"></div>
+        </div>
+      </div>
+
+      <!-- Result Cards Container -->
+      <div class="cards-list" id="cardsList">
+        <div class="empty-state" id="initialEmpty">
+          <svg class="empty-icon" viewBox="0 0 48 48" fill="none">
+            <circle cx="24" cy="24" r="21" stroke="#ff2a4b" stroke-width="2" stroke-opacity="0.85"/>
+            <circle cx="24" cy="24" r="14" stroke="#ff2a4b" stroke-width="1.2" stroke-opacity="0.45" stroke-dasharray="3 3"/>
+            <circle cx="24" cy="24" r="7" stroke="#ff2a4b" stroke-width="1.2" stroke-opacity="0.6"/>
+            <line x1="24" y1="3" x2="24" y2="45" stroke="#ff2a4b" stroke-width="1.2" stroke-opacity="0.4"/>
+            <line x1="3" y1="24" x2="45" y2="24" stroke="#ff2a4b" stroke-width="1.2" stroke-opacity="0.4"/>
+            <line x1="24" y1="24" x2="38" y2="10" stroke="#ff4d6d" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M10 24h6l2-6 3 12 3-8 2 2h6" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="34" cy="14" r="2.2" fill="#ffffff"/>
+            <circle cx="38" cy="28" r="1.8" fill="#ff2a4b"/>
+            <circle cx="16" cy="34" r="1.8" fill="#ffffff" fill-opacity="0.85"/>
+          </svg>
+          <div class="empty-title">Ready to Scan Opportunities</div>
+          <div class="empty-subtitle">Fill in your degree, stream, and city, then hit "Find Hackathons" to get matched with eligibility-checked events.</div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script>
+    // State
+    let currentMode = "both";
+    let activeTab = "all";
+    let allEvents = [];
+    let userCity = "";
+    let userState = "";
+
+    // DOM Elements
+    const form = document.getElementById("profileForm");
+    const searchBtn = document.getElementById("searchBtn");
+    const loadSampleBtn = document.getElementById("loadSampleBtn");
+    const progressBox = document.getElementById("progressBox");
+    const progressTitle = document.getElementById("progressTitle");
+    const progressLog = document.getElementById("progressLog");
+    const filtersBar = document.getElementById("filtersBar");
+    const cardsList = document.getElementById("cardsList");
+    const initialEmpty = document.getElementById("initialEmpty");
+    const mockBadge = document.getElementById("mockBadge");
+
+    // Check backend health & mock status
+    async function checkHealth() {
+      try {
+        const res = await fetch("/api/health");
+        if (res.ok) {
+          const data = await res.json();
+          mockBadge.style.display = "inline-flex";
+          if (data.mocks) {
+            mockBadge.style.background = "rgba(245, 158, 11, 0.12)";
+            mockBadge.style.borderColor = "rgba(245, 158, 11, 0.3)";
+            mockBadge.style.color = "#fbbf24";
+            mockBadge.innerHTML = `<span class="mock-dot" style="background:#f59e0b;"></span><span>Radar Demo Mode</span>`;
+          } else {
+            mockBadge.style.background = "rgba(16, 185, 129, 0.12)";
+            mockBadge.style.borderColor = "rgba(16, 185, 129, 0.35)";
+            mockBadge.style.color = "#34d399";
+            mockBadge.innerHTML = `<span class="mock-dot" style="background:#10b981;box-shadow:0 0 8px #10b981;"></span><span>Live TinyFish & Gemini Radar</span>`;
+          }
+        }
+      } catch (e) {
+        console.warn("Health check error:", e);
+      }
+    }
+    checkHealth();
+
+    // Degree options
+    const DEGREE_OPTIONS = [
+      { value: "B.Tech", label: "B.Tech / B.E.", tag: "Engineering" },
+      { value: "BCA", label: "BCA / B.Sc CS", tag: "CS / IT" },
+      { value: "M.Tech", label: "M.Tech / M.E.", tag: "Postgrad" },
+      { value: "MCA", label: "MCA / M.Sc", tag: "Postgrad" },
+      { value: "B.Des", label: "B.Des / Design", tag: "Product/UI" },
+      { value: "Other", label: "Other Degree", tag: "Open" }
+    ];
+
+    // Year options per degree (Strictly Indian/standard terms: NO freshman, sophomore, junior, senior)
+    const YEARS_BY_DEGREE = {
+      "B.Tech": [
+        { value: "1", label: "1st Year", tag: "UG" },
+        { value: "2", label: "2nd Year", tag: "UG" },
+        { value: "3", label: "3rd Year", tag: "Pre-Final" },
+        { value: "4", label: "4th Year", tag: "Final Year" },
+        { value: "grad", label: "Graduated / Working", tag: "Alumni" }
+      ],
+      "BCA": [
+        { value: "1", label: "1st Year", tag: "UG" },
+        { value: "2", label: "2nd Year", tag: "Pre-Final" },
+        { value: "3", label: "3rd Year", tag: "Final Year" },
+        { value: "grad", label: "Graduated / Working", tag: "Alumni" }
+      ],
+      "M.Tech": [
+        { value: "1", label: "1st Year (PG-1)", tag: "Postgrad" },
+        { value: "2", label: "2nd Year (Final Year)", tag: "Final Year" },
+        { value: "grad", label: "Graduated / Working", tag: "Alumni" }
+      ],
+      "MCA": [
+        { value: "1", label: "1st Year (PG-1)", tag: "Postgrad" },
+        { value: "2", label: "2nd Year (Final Year)", tag: "Final Year" },
+        { value: "grad", label: "Graduated / Working", tag: "Alumni" }
+      ],
+      "B.Des": [
+        { value: "1", label: "1st Year", tag: "Foundation" },
+        { value: "2", label: "2nd Year", tag: "Studio" },
+        { value: "3", label: "3rd Year", tag: "Pre-Final" },
+        { value: "4", label: "4th Year", tag: "Final Year" },
+        { value: "grad", label: "Graduated / Working", tag: "Alumni" }
+      ],
+      "Other": [
+        { value: "1", label: "1st Year", tag: "UG" },
+        { value: "2", label: "2nd Year", tag: "UG" },
+        { value: "3", label: "3rd Year", tag: "Pre-Final" },
+        { value: "4", label: "4th Year", tag: "Final Year" },
+        { value: "grad", label: "Graduated / Working", tag: "Alumni" }
+      ]
+    };
+
+    // Streams mapped per degree
+    const STREAMS_BY_DEGREE = {
+      "B.Tech": [
+        { value: "CSE", label: "Computer Science (CSE)", tag: "Popular" },
+        { value: "IT", label: "Information Tech (IT)", tag: "Tech" },
+        { value: "AI", label: "AI & Data Science", tag: "Hot" },
+        { value: "ECE", label: "Electronics & Comm (ECE)", tag: "Hardware" },
+        { value: "Mechanical", label: "Mechanical & Robotics", tag: "Core" },
+        { value: "BioTech", label: "Biotech & Healthcare", tag: "MedTech" },
+        { value: "General", label: "All Engineering Streams", tag: "Universal" }
+      ],
+      "BCA": [
+        { value: "BCA-General", label: "Computer Applications (BCA)", tag: "Software" },
+        { value: "BSc-CS", label: "B.Sc Computer Science", tag: "Algorithms" },
+        { value: "DataScience", label: "Data Science & Analytics", tag: "Analytics" },
+        { value: "Cloud-Web", label: "Web & Cloud Development", tag: "Full Stack" },
+        { value: "General", label: "All Computing Streams", tag: "Universal" }
+      ],
+      "M.Tech": [
+        { value: "MTech-CSE", label: "Advanced Computer Science", tag: "Research" },
+        { value: "MTech-AI", label: "Artificial Intelligence & ML", tag: "Deep Tech" },
+        { value: "MTech-VLSI", label: "VLSI & Embedded Systems", tag: "Hardware" },
+        { value: "MTech-Cyber", label: "Cybersecurity & Networks", tag: "Security" },
+        { value: "General", label: "All PG Engineering", tag: "Postgrad" }
+      ],
+      "MCA": [
+        { value: "MCA-General", label: "Master of Computer Apps", tag: "Enterprise" },
+        { value: "MSc-CS", label: "M.Sc Computer Science", tag: "Computing" },
+        { value: "MSc-Data", label: "M.Sc Data Science & AI", tag: "Analytics" },
+        { value: "General", label: "All PG Computing Streams", tag: "Universal" }
+      ],
+      "B.Des": [
+        { value: "UIUX", label: "UI / UX & Digital Products", tag: "Product" },
+        { value: "Interaction", label: "Interaction & HCI", tag: "Tech Design" },
+        { value: "Visual", label: "Communication & Visual", tag: "Media" },
+        { value: "General", label: "All Design Disciplines", tag: "Universal" }
+      ],
+      "Other": [
+        { value: "CSE", label: "Software & Technology", tag: "Tech" },
+        { value: "Data", label: "Data Science & Analytics", tag: "Analytics" },
+        { value: "Business", label: "Product & Technology", tag: "Product" },
+        { value: "General", label: "Open to All Streams", tag: "Universal" }
+      ]
+    };
+
+    const CITY_OPTIONS = [
+      { value: "Bengaluru|Karnataka", label: "Bengaluru", tag: "Karnataka" },
+      { value: "Hyderabad|Telangana", label: "Hyderabad", tag: "Telangana" },
+      { value: "Pune|Maharashtra", label: "Pune", tag: "Maharashtra" },
+      { value: "New Delhi|Delhi", label: "Delhi NCR", tag: "Delhi" },
+      { value: "Mumbai|Maharashtra", label: "Mumbai", tag: "Maharashtra" },
+      { value: "Chennai|Tamil Nadu", label: "Chennai", tag: "Tamil Nadu" },
+      { value: "Any|Remote", label: "Any City / Remote", tag: "Virtual" }
+    ];
+
+    const MODE_OPTIONS = [
+      { value: "both", label: "Both (All Events)", tag: "Recommended" },
+      { value: "in-person", label: "In-Person Only", tag: "Local" },
+      { value: "online", label: "Online Only", tag: "Virtual" }
+    ];
+
+    const DATE_OPTIONS = [
+      { value: "upcoming-30", label: "Next 30 Days", tag: "Soon" },
+      { value: "this-weekend", label: "This Weekend", tag: "Sprint" },
+      { value: "upcoming-60", label: "Next 60 Days", tag: "Planning" },
+      { value: "november-2026", label: "November 2026", tag: "Nov" },
+      { value: "december-2026", label: "December 2026", tag: "Dec" },
+      { value: "all-2026", label: "All Upcoming 2026", tag: "Year" }
+    ];
+
+    const SORT_OPTIONS = [
+      { value: "fit", label: "Best Fit Score", tag: "Top Match" },
+      { value: "date", label: "Event Date (Soonest)", tag: "Calendar" },
+      { value: "urgency", label: "Closest Deadline", tag: "Urgent" },
+      { value: "name", label: "Alphabetical", tag: "A - Z" }
+    ];
+
+    // GlideSelect Component Factory (Vanilla JS matching React Bits GlideSelect)
+    function createGlideSelect({
+      container,
+      options,
+      defaultValue,
+      onChange,
+      placeholder = "Select…",
+      showTags = true,
+      accentColor = "#ff2a4b",
+      surfaceColor = "rgba(18, 20, 26, 0.95)",
+      highlightColor = "rgba(239, 68, 68, 0.38)",
+      textColor = "#f8fafc",
+      size = "md",
+      radius = 10,
+      menuWidth = 260,
+      placement = "bottom",
+      align = "left",
+      popDuration = 180,
+      glideDuration = 220,
+      ariaLabel = "Select"
+    }) {
+      let currentOptions = [...options];
+      let currentValue = defaultValue ?? (currentOptions[0]?.value || "");
+      let phase = "closed";
+      let optionEls = [];
+      const step = 33; // row (32) + gap (1)
+
+      const root = document.createElement("div");
+      root.className = "glide-select";
+      root.dataset.size = size;
+      root.style.setProperty("--gs-accent", accentColor);
+      root.style.setProperty("--gs-surface", surfaceColor);
+      root.style.setProperty("--gs-highlight", highlightColor);
+      root.style.setProperty("--gs-text", textColor);
+      root.style.setProperty("--gs-radius", `${radius}px`);
+      root.style.setProperty("--gs-inner-radius", `${Math.max(3, radius - 4)}px`);
+      root.style.setProperty("--gs-chip", "36px");
+      root.style.setProperty("--gs-row", "32px");
+      root.style.setProperty("--gs-font", "13px");
+      root.style.setProperty("--gs-menu-w", `${menuWidth}px`);
+      root.style.setProperty("--gs-pop", `${popDuration}ms`);
+      root.style.setProperty("--gs-pop-out", `${Math.round((popDuration * 2) / 3)}ms`);
+      root.style.setProperty("--gs-glide", `${glideDuration}ms`);
+      root.style.setProperty("--gs-origin", align === "right" ? "top right" : "top left");
+
+      // Trigger button
+      const trigger = document.createElement("button");
+      trigger.type = "button";
+      trigger.className = "glide-select__trigger";
+      trigger.setAttribute("role", "combobox");
+      trigger.setAttribute("aria-haspopup", "listbox");
+      trigger.setAttribute("aria-expanded", "false");
+      trigger.setAttribute("aria-label", ariaLabel);
+
+      const labelSpan = document.createElement("span");
+      labelSpan.className = "glide-select__label";
+      
+      const chevronSpan = document.createElement("span");
+      chevronSpan.className = "glide-select__chevron";
+      chevronSpan.setAttribute("aria-hidden", "true");
+      chevronSpan.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`;
+
+      trigger.appendChild(labelSpan);
+      trigger.appendChild(chevronSpan);
+      root.appendChild(trigger);
+
+      // Menu
+      const menu = document.createElement("div");
+      menu.className = "glide-select__menu";
+      menu.dataset.state = "closed";
+      menu.dataset.side = placement;
+      menu.dataset.align = align;
+
+      const list = document.createElement("div");
+      list.className = "glide-select__list";
+      list.setAttribute("role", "listbox");
+      list.setAttribute("aria-label", ariaLabel);
+
+      const pill = document.createElement("span");
+      pill.className = "glide-select__pill";
+      pill.setAttribute("aria-hidden", "true");
+      list.appendChild(pill);
+
+      function renderOptionRows(opts) {
+        currentOptions = opts;
+        // Clean out any existing options from DOM to prevent duplication
+        list.querySelectorAll(".glide-select__option").forEach(el => el.remove());
+
+        optionEls = currentOptions.map((opt, i) => {
+          const row = document.createElement("div");
+          row.className = "glide-select__option";
+          row.setAttribute("role", "option");
+          row.dataset.index = i;
+          row.dataset.value = opt.value;
+
+          const nameSpan = document.createElement("span");
+          nameSpan.className = "glide-select__name";
+          nameSpan.textContent = opt.label;
+          row.appendChild(nameSpan);
+
+          if (showTags && opt.tag) {
+            const tagSpan = document.createElement("span");
+            tagSpan.className = "glide-select__tag";
+            tagSpan.textContent = opt.tag;
+            row.appendChild(tagSpan);
+          }
+
+          const checkSpan = document.createElement("span");
+          checkSpan.className = "glide-select__check";
+          checkSpan.setAttribute("aria-hidden", "true");
+          checkSpan.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 14L9 18L19 6"/></svg>`;
+          row.appendChild(checkSpan);
+
+          row.addEventListener("click", (e) => {
+            e.stopPropagation();
+            pick(i);
+          });
+
+          list.appendChild(row);
+          return row;
+        });
+      }
+
+      renderOptionRows(options);
+      menu.appendChild(list);
+      root.appendChild(menu);
+      container.appendChild(root);
+
+      function updateUI() {
+        const selectedOpt = currentOptions.find(o => o.value === currentValue) || currentOptions[0];
+        labelSpan.textContent = selectedOpt ? selectedOpt.label : placeholder;
+
+        optionEls.forEach((el, i) => {
+          const opt = currentOptions[i];
+          if (!opt) return;
+          const isSelected = opt.value === currentValue;
+          el.setAttribute("aria-selected", isSelected ? "true" : "false");
+          const chk = el.querySelector(".glide-select__check");
+          if (chk) {
+            if (isSelected) {
+              chk.setAttribute("data-on", "");
+            } else {
+              chk.removeAttribute("data-on");
+            }
+          }
+        });
+      }
+
+      function openMenu() {
+        if (phase === "open") return;
+
+        // Close any other open GlideSelect menus
+        document.querySelectorAll(".glide-select__menu[data-state='open']").forEach(m => {
+          m.dataset.state = "closed";
+          const trig = m.closest(".glide-select")?.querySelector(".glide-select__trigger");
+          if (trig) trig.setAttribute("aria-expanded", "false");
+        });
+
+        phase = "open";
+        trigger.setAttribute("aria-expanded", "true");
+        menu.dataset.state = "open";
+
+        const selectedIndex = currentOptions.findIndex(o => o.value === currentValue);
+        if (selectedIndex >= 0) {
+          pill.style.transition = "none";
+          pill.style.transform = `translateY(${selectedIndex * step}px)`;
+          pill.style.opacity = "1";
+          void pill.offsetHeight;
+          pill.style.transition = "";
+
+          // Auto-scroll menu if selected item is out of view
+          const targetEl = optionEls[selectedIndex];
+          if (targetEl && menu.scrollHeight > menu.clientHeight) {
+            menu.scrollTop = Math.max(0, targetEl.offsetTop - menu.clientHeight / 2 + step / 2);
+          }
+        } else {
+          pill.style.opacity = "0";
+        }
+      }
+
+      function closeMenu() {
+        if (phase === "closed") return;
+        phase = "closed";
+        trigger.setAttribute("aria-expanded", "false");
+        menu.dataset.state = "closed";
+        pill.style.opacity = "0";
+      }
+
+      function pick(index) {
+        const opt = currentOptions[index];
+        if (!opt) return;
+        const changed = opt.value !== currentValue;
+        currentValue = opt.value;
+        root.dataset.swap = "";
+        updateUI();
+        if (changed) {
+          onChange?.(currentValue, opt);
+        }
+        closeMenu();
+      }
+
+      trigger.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (phase === "open") closeMenu();
+        else openMenu();
+      });
+
+      list.addEventListener("pointerover", (e) => {
+        const row = e.target.closest("[data-index]");
+        if (!row) return;
+        const i = Number(row.dataset.index);
+        pill.style.transform = `translateY(${i * step}px)`;
+        pill.style.opacity = "1";
+      });
+
+      list.addEventListener("pointerleave", () => {
+        const selectedIndex = currentOptions.findIndex(o => o.value === currentValue);
+        if (selectedIndex >= 0) {
+          pill.style.transform = `translateY(${selectedIndex * step}px)`;
+        } else {
+          pill.style.opacity = "0";
+        }
+      });
+
+      document.addEventListener("pointerdown", (e) => {
+        if (!root.contains(e.target)) {
+          closeMenu();
+        }
+      });
+
+      root.addEventListener("animationend", (e) => {
+        if (e.animationName === "gs-swap") delete root.dataset.swap;
+      });
+
+      function rebuildOptions(newOpts, newVal) {
+        renderOptionRows(newOpts);
+        if (newVal !== undefined && currentOptions.some(o => o.value === newVal)) {
+          currentValue = newVal;
+        } else if (!currentOptions.some(o => o.value === currentValue)) {
+          currentValue = currentOptions[0]?.value || "";
+        }
+        updateUI();
+      }
+
+      updateUI();
+
+      return {
+        getValue: () => currentValue,
+        setValue: (val) => {
+          if (currentOptions.some(o => o.value === val)) {
+            currentValue = val;
+            updateUI();
+          }
+        },
+        setOptions: rebuildOptions
+      };
+    }
+
+    // Initialize Degree GlideSelect
+    const degreeGlide = createGlideSelect({
+      container: document.getElementById("degreeGlideContainer"),
+      options: DEGREE_OPTIONS,
+      defaultValue: "B.Tech",
+      menuWidth: 260,
+      align: "left",
+      ariaLabel: "Degree",
+      onChange: (val) => {
+        document.getElementById("degree").value = val;
+        // Dynamically update Year and Stream based on Degree
+        const newYears = YEARS_BY_DEGREE[val] || YEARS_BY_DEGREE["Other"];
+        const newStreams = STREAMS_BY_DEGREE[val] || STREAMS_BY_DEGREE["Other"];
+        yearGlide.setOptions(newYears);
+        document.getElementById("year").value = yearGlide.getValue();
+        streamGlide.setOptions(newStreams);
+        document.getElementById("stream").value = streamGlide.getValue();
+        saveProfileToStorage();
+      }
+    });
+
+    // Initialize Stream GlideSelect
+    const streamGlide = createGlideSelect({
+      container: document.getElementById("streamGlideContainer"),
+      options: STREAMS_BY_DEGREE["B.Tech"],
+      defaultValue: "CSE",
+      menuWidth: 270,
+      align: "right",
+      ariaLabel: "Stream / Branch",
+      onChange: (val) => {
+        document.getElementById("stream").value = val;
+        saveProfileToStorage();
+      }
+    });
+
+    // Initialize Hub City GlideSelect
+    const cityGlide = createGlideSelect({
+      container: document.getElementById("cityGlideContainer"),
+      options: CITY_OPTIONS,
+      defaultValue: "Bengaluru|Karnataka",
+      menuWidth: 250,
+      align: "right",
+      ariaLabel: "Hub City",
+      onChange: (val) => {
+        const [c, s] = val.split("|");
+        document.getElementById("city").value = c === "Any" ? "" : c;
+        document.getElementById("state").value = s === "Remote" ? "" : s;
+        saveProfileToStorage();
+      }
+    });
+
+    // Initialize Year GlideSelect (configured dynamically per degree, no freshman/sophomore/junior)
+    const yearGlide = createGlideSelect({
+      container: document.getElementById("yearGlideContainer"),
+      options: YEARS_BY_DEGREE["B.Tech"],
+      defaultValue: "3",
+      menuWidth: 240,
+      align: "left",
+      ariaLabel: "Year of Study",
+      onChange: (val) => {
+        document.getElementById("year").value = val;
+        saveProfileToStorage();
+      }
+    });
+
+    // Initialize Mode GlideSelect
+    const modeGlide = createGlideSelect({
+      container: document.getElementById("modeGlideContainer"),
+      options: MODE_OPTIONS,
+      defaultValue: currentMode,
+      menuWidth: 260,
+      align: "left",
+      ariaLabel: "Preferred Mode",
+      onChange: (val) => {
+        currentMode = val;
+        saveProfileToStorage();
+      }
+    });
+
+    // Initialize Target Date GlideSelect
+    const dateGlide = createGlideSelect({
+      container: document.getElementById("dateGlideContainer"),
+      options: DATE_OPTIONS,
+      defaultValue: "upcoming-30",
+      menuWidth: 250,
+      align: "right",
+      ariaLabel: "Target Date or Month",
+      onChange: (val) => {
+        const td = document.getElementById("targetDate");
+        if (td) td.value = val;
+        saveProfileToStorage();
+      }
+    });
+
+    // Initialize Sort Order GlideSelect
+    let currentSort = "fit";
+    const sortGlide = createGlideSelect({
+      container: document.getElementById("sortGlideContainer"),
+      options: SORT_OPTIONS,
+      defaultValue: "fit",
+      menuWidth: 210,
+      size: "sm",
+      align: "right",
+      ariaLabel: "Sort Hackathons",
+      onChange: (val) => {
+        currentSort = val;
+        renderCards();
+      }
+    });
+
+    // Tab buttons
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        activeTab = btn.dataset.tab;
+        renderCards();
+      });
+    });
+
+    // LocalStorage profile persistence
+    function saveProfileToStorage() {
+      const data = {
+        degree: degreeGlide ? degreeGlide.getValue() : document.getElementById("degree").value,
+        stream: streamGlide ? streamGlide.getValue() : document.getElementById("stream").value,
+        year: yearGlide ? yearGlide.getValue() : document.getElementById("year").value,
+        cityVal: cityGlide ? cityGlide.getValue() : "Bengaluru|Karnataka",
+        country: document.getElementById("country").value,
+        city: document.getElementById("city").value,
+        state: document.getElementById("state").value,
+        skills: document.getElementById("skills").value,
+        interests: document.getElementById("interests").value,
+        mode: modeGlide ? modeGlide.getValue() : currentMode,
+        targetDate: dateGlide ? dateGlide.getValue() : (document.getElementById("targetDate") ? document.getElementById("targetDate").value : "upcoming-30")
+      };
+      localStorage.setItem("hackradar_profile", JSON.stringify(data));
+    }
+
+    function loadProfileFromStorage() {
+      const saved = localStorage.getItem("hackradar_profile");
+      if (saved) {
+        try {
+          const p = JSON.parse(saved);
+          if (p.degree) {
+            document.getElementById("degree").value = p.degree;
+            if (degreeGlide) degreeGlide.setValue(p.degree);
+            const years = YEARS_BY_DEGREE[p.degree] || YEARS_BY_DEGREE["Other"];
+            const streams = STREAMS_BY_DEGREE[p.degree] || STREAMS_BY_DEGREE["Other"];
+            if (yearGlide) yearGlide.setOptions(years, p.year);
+            if (streamGlide) streamGlide.setOptions(streams, p.stream);
+          } else {
+            if (p.stream && streamGlide) streamGlide.setValue(p.stream);
+            if (p.year && yearGlide) yearGlide.setValue(p.year);
+          }
+          if (p.cityVal && cityGlide) {
+            cityGlide.setValue(p.cityVal);
+            const [c, s] = p.cityVal.split("|");
+            document.getElementById("city").value = c === "Any" ? "" : c;
+            document.getElementById("state").value = s === "Remote" ? "" : s;
+          } else if (p.city) {
+            document.getElementById("city").value = p.city;
+            if (p.state) document.getElementById("state").value = p.state;
+          }
+          if (p.country) document.getElementById("country").value = p.country;
+          if (p.skills) document.getElementById("skills").value = p.skills;
+          if (p.interests) document.getElementById("interests").value = p.interests;
+          if (p.mode) {
+            currentMode = p.mode;
+            if (modeGlide) modeGlide.setValue(p.mode);
+          }
+          if (p.targetDate) {
+            if (dateGlide) dateGlide.setValue(p.targetDate);
+            const td = document.getElementById("targetDate");
+            if (td) td.value = p.targetDate;
+          }
+        } catch (e) {
+          console.error("Failed to parse saved profile", e);
+        }
+      }
+    }
+    loadProfileFromStorage();
+
+    // Sample Profile Button
+    loadSampleBtn.addEventListener("click", () => {
+      document.getElementById("degree").value = "B.Tech";
+      if (degreeGlide) degreeGlide.setValue("B.Tech");
+      const years = YEARS_BY_DEGREE["B.Tech"];
+      const streams = STREAMS_BY_DEGREE["B.Tech"];
+      if (yearGlide) yearGlide.setOptions(years, "3");
+      if (streamGlide) streamGlide.setOptions(streams, "CSE");
+      document.getElementById("stream").value = "CSE";
+      document.getElementById("year").value = "3";
+      document.getElementById("city").value = "Bengaluru";
+      document.getElementById("state").value = "Karnataka";
+      if (cityGlide) cityGlide.setValue("Bengaluru|Karnataka");
+      document.getElementById("country").value = "India";
+      document.getElementById("skills").value = "Python, AI, Agents, FastAPI";
+      document.getElementById("interests").value = "Generative AI, Web3, Cybersecurity";
+      currentMode = "both";
+      if (modeGlide) modeGlide.setValue("both");
+      if (dateGlide) dateGlide.setValue("upcoming-30");
+      const td = document.getElementById("targetDate");
+      if (td) td.value = "upcoming-30";
+      saveProfileToStorage();
+    });
+
+    // Auto save on inputs
+    form.querySelectorAll("input").forEach(input => {
+      input.addEventListener("input", saveProfileToStorage);
+    });
+
+    // Progress Log Appender
+    function addProgressLog(msg) {
+      progressBox.classList.add("active");
+      progressTitle.textContent = msg;
+      const row = document.createElement("div");
+      row.textContent = `> ${msg}`;
+      progressLog.appendChild(row);
+      progressLog.scrollTop = progressLog.scrollHeight;
+    }
+
+    // Submit handler with SSE Streaming
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      saveProfileToStorage();
+
+      userCity = document.getElementById("city").value.trim().toLowerCase();
+      userState = document.getElementById("state").value.trim().toLowerCase();
+
+      const profilePayload = {
+        degree: document.getElementById("degree").value.trim(),
+        stream: document.getElementById("stream").value.trim(),
+        year: (yearGlide ? yearGlide.getValue() : document.getElementById("year").value.trim()) || null,
+        country: document.getElementById("country").value.trim() || "India",
+        city: document.getElementById("city").value.trim() || null,
+        state: document.getElementById("state").value.trim() || null,
+        skills: document.getElementById("skills").value.split(",").map(s => s.trim()).filter(Boolean),
+        interests: document.getElementById("interests").value.split(",").map(s => s.trim()).filter(Boolean),
+        mode: modeGlide ? modeGlide.getValue() : currentMode,
+        target_date: dateGlide ? dateGlide.getValue() : (document.getElementById("targetDate") ? document.getElementById("targetDate").value : "upcoming-30")
+      };
+
+      // Reset UI state
+      allEvents = [];
+      cardsList.innerHTML = "";
+      progressLog.innerHTML = "";
+      progressBox.classList.add("active");
+      filtersBar.style.display = "none";
+      searchBtn.disabled = true;
+      searchBtn.querySelector("span").textContent = "Scanning...";
+
+      try {
+        const response = await fetch("/api/search", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(profilePayload)
+        });
+
+        if (!response.ok) {
+          throw new Error(`Server returned status ${response.status}`);
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n\n");
+          buffer = lines.pop(); // keep remainder
+
+          for (const chunk of lines) {
+            const line = chunk.trim();
+            if (line.startsWith("data: ")) {
+              try {
+                const eventData = JSON.parse(line.slice(6));
+                handleStreamEvent(eventData);
+              } catch (err) {
+                console.warn("SSE parse error:", err, line);
+              }
+            }
+          }
+        }
+
+      } catch (err) {
+        console.error("Search failed:", err);
+        addProgressLog(`Error: ${err.message}`);
+        cardsList.innerHTML = `
+          <div class="error-box">
+            <strong>Search request failed:</strong> ${err.message}
+          </div>
+        `;
+      } finally {
+        searchBtn.disabled = false;
+        searchBtn.querySelector("span").textContent = "Find Hackathons";
+      }
+    });
+
+    // Handle individual SSE messages
+    function handleStreamEvent(data) {
+      if (data.type === "progress") {
+        addProgressLog(data.message);
+      } else if (data.type === "result") {
+        allEvents.push(data.event);
+        filtersBar.style.display = "flex";
+        renderCards();
+      } else if (data.type === "done") {
+        addProgressLog(`Scan finished! Found ${allEvents.length} ranked hackathons.`);
+        setTimeout(() => {
+          progressBox.classList.remove("active");
+        }, 3000);
+      } else if (data.type === "error") {
+        addProgressLog(`Error: ${data.message}`);
+      }
+    }
+
+    // Filter events based on active tab
+    function getFilteredEvents() {
+      if (activeTab === "all") return allEvents;
+
+      if (activeTab === "this-month") {
+        const now = new Date();
+        const curMonth = now.getMonth();
+        const curYear = now.getFullYear();
+        return allEvents.filter(ev => {
+          if (!ev.start_date) return false;
+          const d = new Date(ev.start_date);
+          return !isNaN(d.getTime()) && d.getMonth() === curMonth && d.getFullYear() === curYear;
+        });
+      }
+
+      if (activeTab === "near") {
+        return allEvents.filter(ev => {
+          const city = (ev.city || "").toLowerCase();
+          return userCity && (city.includes(userCity) || userCity.includes(city));
+        });
+      }
+
+      if (activeTab === "online") {
+        return allEvents.filter(ev => {
+          const m = (ev.mode || "").toLowerCase();
+          return m === "online" || m === "hybrid";
+        });
+      }
+
+      if (activeTab === "national") {
+        return allEvents.filter(ev => {
+          const n = (ev.name || "").toLowerCase();
+          const org = (ev.organizer || "").toLowerCase();
+          return n.includes("national") || n.includes("india") || org.includes("ministry") || org.includes("aicte");
+        });
+      }
+
+      return allEvents;
+    }
+
+    // Render cards and update tab counts
+    function renderCards() {
+      // Update tab counts
+      const countAll = allEvents.length;
+      const countThisMonth = allEvents.filter(ev => {
+        if (!ev.start_date) return false;
+        const d = new Date(ev.start_date);
+        const now = new Date();
+        return !isNaN(d.getTime()) && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      }).length;
+      const countNear = allEvents.filter(ev => {
+        const city = (ev.city || "").toLowerCase();
+        return userCity && (city.includes(userCity) || userCity.includes(city));
+      }).length;
+      const countOnline = allEvents.filter(ev => {
+        const m = (ev.mode || "").toLowerCase();
+        return m === "online" || m === "hybrid";
+      }).length;
+      const countNational = allEvents.filter(ev => {
+        const n = (ev.name || "").toLowerCase();
+        const org = (ev.organizer || "").toLowerCase();
+        return n.includes("national") || n.includes("india") || org.includes("ministry") || org.includes("aicte");
+      }).length;
+
+      document.getElementById("countAll").textContent = countAll;
+      const countThisMonthEl = document.getElementById("countThisMonth");
+      if (countThisMonthEl) countThisMonthEl.textContent = countThisMonth;
+      document.getElementById("countNear").textContent = countNear;
+      document.getElementById("countOnline").textContent = countOnline;
+      document.getElementById("countNational").textContent = countNational;
+      document.getElementById("summaryText").textContent = `Showing ${getFilteredEvents().length} of ${countAll} hackathons`;
+
+      let visible = [...getFilteredEvents()];
+      if (currentSort === "fit") {
+        visible.sort((a, b) => (b.fit_score || 0) - (a.fit_score || 0));
+      } else if (currentSort === "date") {
+        visible.sort((a, b) => {
+          const da = new Date(a.start_date || a.end_date || "2099-01-01");
+          const db = new Date(b.start_date || b.end_date || "2099-01-01");
+          return da - db;
+        });
+      } else if (currentSort === "urgency") {
+        visible.sort((a, b) => {
+          const da = new Date(a.registration_deadline || a.end_date || "2099-01-01");
+          const db = new Date(b.registration_deadline || b.end_date || "2099-01-01");
+          return da - db;
+        });
+      } else if (currentSort === "name") {
+        visible.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+      }
+
+      if (visible.length === 0) {
+        cardsList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-title">No hackathons in this tab</div>
+            <div class="empty-subtitle">Switch to "All" or try adjusting your profile filter.</div>
+          </div>
+        `;
+        return;
+      }
+
+      cardsList.innerHTML = visible.map(ev => createCardHTML(ev)).join("");
+    }
+
+    // Helper: format deadline countdown
+    function getDeadlineToHTML(deadlineStr) {
+      if (!deadlineStr) return '<span class="deadline-normal">Dates TBA</span>';
+      
+      const deadline = new Date(deadlineStr);
+      const now = new Date();
+      // Difference in days
+      const diffTime = deadline.getTime() - now.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays <= 3 && diffDays >= 0) {
+        const label = diffDays === 0 ? "Closes today!" : (diffDays === 1 ? "Closes tomorrow!" : `Closes in ${diffDays} days`);
+        return `<span class="deadline-urgent">${label}</span>`;
+      }
+      return `<span class="deadline-normal">Deadline: ${deadlineStr}</span>`;
+    }
+
+    // Helper: Score color
+    function getScoreColor(score) {
+      if (score >= 75) return "#ff2a4b"; // cyber red (top radar match)
+      if (score >= 55) return "#38bdf8"; // cyber cyan
+      if (score >= 35) return "#10b981"; // emerald
+      return "#94a3b8"; // muted
+    }
+
+    // Create Card HTML
+    function createCardHTML(ev) {
+      const mode = (ev.mode || "online").toLowerCase();
+      let modeBadgeClass = "mode-online";
+      let modeLabel = "Online";
+      if (mode === "in-person") {
+        modeBadgeClass = "mode-in-person";
+        modeLabel = `In-Person • ${ev.city || 'Local'}`;
+      } else if (mode === "hybrid") {
+        modeBadgeClass = "mode-hybrid";
+        modeLabel = `Hybrid • ${ev.city || 'Delhi/Online'}`;
+      }
+
+      const score = ev.fit_score || 0;
+      const scoreColor = getScoreColor(score);
+      const datesText = (ev.start_date && ev.end_date) ? `${ev.start_date} to ${ev.end_date}` : (ev.start_date || "Dates TBD");
+      const prizeText = ev.prize || "Prizes & Recognition";
+      const deadlineHTML = getDeadlineToHTML(ev.registration_deadline || ev.end_date);
+
+      // Calendar tile values
+      let monthStr = "EVENT";
+      let dayStr = "—";
+      let durationStr = "Sprint";
+      
+      if (ev.start_date) {
+        const d = new Date(ev.start_date);
+        if (!isNaN(d.getTime())) {
+          monthStr = d.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+          dayStr = d.getDate();
+        }
+      }
+      
+      if (ev.start_date && ev.end_date) {
+        const d1 = new Date(ev.start_date);
+        const d2 = new Date(ev.end_date);
+        if (!isNaN(d1.getTime()) && !isNaN(d2.getTime())) {
+          const diffDays = Math.max(1, Math.round((d2 - d1) / (1000 * 60 * 60 * 24)) + 1);
+          durationStr = diffDays === 1 ? "1 Day" : (diffDays <= 3 ? `${diffDays} Days • Sprint` : `${diffDays} Days`);
+        }
+      }
+
+      const flagsHTML = (ev.flags || []).map(f => {
+        let flagClass = "flag-chip";
+        if (f.includes("unclear") || f.includes("Closes")) flagClass += " warning";
+        if (f.includes("Student")) flagClass += " student";
+        return `<span class="${flagClass}">${f}</span>`;
+      }).join("");
+
+      return `
+        <article class="card">
+          <div class="card-top">
+            <div class="card-title-group">
+              <h3 class="card-name">${escapeHTML(ev.name)}</h3>
+              <div class="card-organizer">${escapeHTML(ev.organizer || "Independent Community")}</div>
+            </div>
+            <div class="fit-badge-container">
+              <div class="fit-score-value" style="color: ${scoreColor}">${score}%</div>
+              <div class="fit-score-label">Fit Score</div>
+              <div class="fit-bar-bg">
+                <div class="fit-bar-fill" style="width: ${score}%; background: ${scoreColor}"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dedicated Schedule & Date Section -->
+          <div class="card-date-section">
+            <div class="date-calendar-tile">
+              <span class="cal-ribbon">${monthStr}</span>
+              <span class="cal-number">${dayStr}</span>
+            </div>
+            <div class="date-schedule-info">
+              <div class="date-row-main">
+                <span class="date-heading-label">Schedule:</span>
+                <span class="date-range-text">${escapeHTML(datesText)}</span>
+                <span class="date-duration-tag">${durationStr}</span>
+              </div>
+              <div class="date-row-sub">
+                <span class="mode-pill ${modeBadgeClass}">${modeLabel}</span>
+                <div class="meta-item">
+                  ${deadlineHTML}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="reason-box">
+            <strong>Why this fits:</strong> ${escapeHTML(ev.reason || "Matches your academic stream and technical skill focus.")}
+          </div>
+
+          <div class="flags-container">
+            ${flagsHTML}
+          </div>
+
+          <div class="card-footer">
+            <div class="prize-tag">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.45 1-1 1H7"></path><path d="M14 14.66V17c0 .55.45 1 1 1h2"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+              <span>${escapeHTML(prizeText)}</span>
+            </div>
+            <a href="${escapeHTML(ev.url)}" target="_blank" rel="noopener noreferrer" class="view-btn">
+              <span>View Event</span>
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            </a>
+          </div>
+        </article>
+      `;
+    }
+
+    function escapeHTML(str) {
+      if (!str) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // ==========================================
+    // Antigravity Background (from React Bits)
+    // ==========================================
+    function initAntigravity() {
+      const canvas = document.getElementById("antigravityCanvas");
+      const container = document.getElementById("antigravityBg");
+      if (!canvas || !container) return;
+
+      const gl = canvas.getContext("webgl2", {
+        alpha: true,
+        premultipliedAlpha: true,
+        antialias: false,
+        depth: false,
+        stencil: false,
+        powerPreference: "high-performance"
+      });
+      if (!gl) {
+        console.warn("WebGL2 not available for Antigravity, using CSS background fallback.");
+        return;
+      }
+
+      const PIXEL_BUDGET = 2.4e6;
+      const WORLD_HEIGHT = 31.5;
+      const PALETTE_SIZE = 256;
+      const DEFAULT_COLORS = ['#FF2A4B', '#FFFFFF', '#FF5C75', '#DC2626'];
+
+      const VERTEX = `#version 300 es
+precision highp float;
+layout(location = 0) in vec2 aCorner;
+layout(location = 1) in vec4 aParticle;
+layout(location = 2) in vec4 aSeed;
+uniform vec2 uSize;
+uniform float uPixel;
+uniform vec2 uCursor;
+uniform float uRing;
+uniform float uBand;
+uniform float uParticle;
+uniform float uAmbient;
+uniform float uTime;
+uniform float uPulse;
+uniform float uVariance;
+uniform float uDepth;
+uniform float uShape;
+uniform float uColorMode;
+uniform float uStops;
+uniform float uHue;
+uniform float uReveal;
+uniform float uStreak;
+uniform float uCharge;
+out vec2 vLocal;
+out vec2 vBounds;
+out float vU;
+out float vAlpha;
+out float vSoft;
+
+void main() {
+  vec2 rel = aParticle.xy - uCursor;
+  float dist = length(rel);
+  vec2 radial = dist > 1e-3 ? rel / dist : vec2(1.0, 0.0);
+  vec2 dir = radial;
+  float speed = length(aParticle.zw);
+  float streak = clamp(speed / uStreak, 0.0, 2.5);
+  if (speed > 1e-3) {
+    vec2 heading = aParticle.zw / speed * sign(dot(aParticle.zw, radial) + 1e-4);
+    dir = normalize(mix(radial, heading, smoothstep(0.0, 1.0, streak)));
+  }
+  float ring = exp(-pow((dist - uRing) / uBand, 2.0));
+  float z = aSeed.x;
+  float depth = 1.0 + z * 0.32 * uDepth;
+  float pulse = 1.0 + sin(uTime * uPulse + aSeed.y) * 0.22 * uVariance;
+  float grow = uAmbient + (1.0 - uAmbient) * ring;
+  float size = uParticle * depth * pulse * (0.85 + 0.3 * aSeed.w) * (1.0 + uCharge * 0.25 * ring);
+  vec2 bounds;
+  if (uShape < 0.5) {
+    float width = size * 0.17 * mix(0.55, 1.0, ring);
+    bounds = vec2(max(width, size * 0.5 * grow) * (1.0 + streak * 1.2), width);
+  } else if (uShape < 1.5) {
+    bounds = vec2(size * 0.22 * mix(0.45, 1.0, grow));
+  } else {
+    bounds = vec2(size * 0.26 * mix(0.45, 1.0, grow));
+  }
+  float soft = 1.0 + max(-z, 0.0) * 1.6 * uDepth;
+  vec2 local = aCorner * (bounds + soft * 1.5 / uPixel);
+  vec2 world = aParticle.xy + dir * local.x + vec2(-dir.y, dir.x) * local.y;
+  gl_Position = vec4(world.x / uSize.x * 2.0 - 1.0, 1.0 - world.y / uSize.y * 2.0, 0.0, 1.0);
+  vLocal = local * uPixel;
+  vBounds = bounds * uPixel;
+  vSoft = soft;
+  if (uColorMode < 0.5) {
+    vU = atan(radial.y, radial.x) / 6.28318530718 + uHue + (aSeed.z - 0.5) * 0.06;
+  } else if (uColorMode < 1.5) {
+    vU = clamp(dist / (uRing * 2.4), 0.0, 1.0) + (aSeed.z - 0.5) * 0.06;
+  } else {
+    vU = floor(aSeed.z * uStops) / max(uStops - 1.0, 1.0);
+  }
+  float fog = 1.0 - max(-z, 0.0) * 0.35 * uDepth;
+  vAlpha = mix(uAmbient, 1.0, ring) * fog * uReveal;
+}`;
+
+      const FRAGMENT = `#version 300 es
+precision highp float;
+uniform sampler2D uPalette;
+uniform float uShape;
+uniform float uColorMode;
+uniform float uOpacity;
+in vec2 vLocal;
+in vec2 vBounds;
+in float vU;
+in float vAlpha;
+in float vSoft;
+out vec4 fragColor;
+
+void main() {
+  vec2 p = vLocal;
+  float d;
+  if (uShape < 0.5) {
+    float r = vBounds.y;
+    d = length(vec2(max(abs(p.x) - max(vBounds.x - r, 0.0), 0.0), p.y)) - r;
+  } else if (uShape < 1.5) {
+    d = length(p) - vBounds.x;
+  } else if (uShape < 2.5) {
+    float r = vBounds.x * 0.28;
+    vec2 q = abs(p) - (vBounds - r);
+    d = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;
+  } else {
+    float r = vBounds.x * 1.15;
+    vec2 q = vec2(r * 0.5774 - p.x, abs(p.y));
+    d = max(dot(q, vec2(0.5, 0.8660254)) - r * 0.5, -q.x - r * 0.5) * 1.2;
+  }
+  float alpha = clamp(0.5 - d / vSoft, 0.0, 1.0) * vAlpha * uOpacity;
+  if (alpha < 0.002) discard;
+  vec3 color = texture(uPalette, vec2(uColorMode < 0.5 ? fract(vU) : vU, uColorMode < 0.5 ? 0.25 : 0.75)).rgb;
+  fragColor = vec4(color * alpha, alpha);
+}`;
+
+      const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+      const parseColor = value => {
+        const text = String(value || "").trim();
+        const hex = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(text);
+        if (hex) {
+          const full = hex[1].length === 3 ? hex[1].replace(/./g, d => d + d) : hex[1];
+          return [0, 2, 4].map(idx => parseInt(full.slice(idx, idx + 2), 16) / 255);
+        }
+        return [1, 1, 1];
+      };
+
+      const toLinear = c => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+      const toSrgb = c => (c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(Math.max(c, 0), 1 / 2.4) - 0.055);
+      const toOklab = color => {
+        const [r, g, b] = color.map(toLinear);
+        const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+        const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+        const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+        return [
+          0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
+          1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
+          0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s
+        ];
+      };
+
+      const fromOklab = ([L, a, b]) => {
+        const l = Math.pow(L + 0.3963377774 * a + 0.2158037573 * b, 3);
+        const m = Math.pow(L - 0.1055613458 * a - 0.0638541728 * b, 3);
+        const s = Math.pow(L - 0.0894841775 * a - 1.291485548 * b, 3);
+        return [
+          4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+          -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+          -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s
+        ].map(channel => clamp(toSrgb(channel), 0, 1));
+      };
+
+      const buildPalette = (colors) => {
+        const stops = [];
+        colors.forEach(color => {
+          const parsed = parseColor(color);
+          if (!parsed) return;
+          stops.push(toOklab(parsed));
+        });
+        if (!stops.length) stops.push(toOklab([1, 1, 1]));
+        const data = new Uint8Array(PALETTE_SIZE * 2 * 4);
+        const rows = [[...stops, stops[0]], stops.length > 1 ? stops : [stops[0], stops[0]]];
+        rows.forEach((row, index) => {
+          for (let x = 0; x < PALETTE_SIZE; x++) {
+            const t = (x / (PALETTE_SIZE - (index === 0 ? 0 : 1))) * (row.length - 1);
+            const from = Math.min(Math.floor(t), row.length - 2);
+            const k = t - from;
+            const eased = k * k * (3 - 2 * k);
+            const start = row[from];
+            const end = row[from + 1];
+            const chroma = Math.hypot(start[1], start[2]) * (1 - eased) + Math.hypot(end[1], end[2]) * eased;
+            const a = start[1] + (end[1] - start[1]) * eased;
+            const b = start[2] + (end[2] - start[2]) * eased;
+            const length = Math.hypot(a, b);
+            const scale = length > 1e-4 ? chroma / length : 0;
+            const color = fromOklab([start[0] + (end[0] - start[0]) * eased, a * scale, b * scale]);
+            for (let channel = 0; channel < 3; channel++) {
+              data[(index * PALETTE_SIZE + x) * 4 + channel] = Math.round(color[channel] * 255);
+            }
+            data[(index * PALETTE_SIZE + x) * 4 + 3] = 255;
+          }
+        });
+        return data;
+      };
+
+      const random = seed => () => {
+        seed |= 0;
+        seed = (seed + 0x6d2b79f5) | 0;
+        let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+
+      const compile = (type, source) => {
+        const shader = gl.createShader(type);
+        if (!shader) return null;
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+          console.error(gl.getShaderInfoLog(shader));
+          gl.deleteShader(shader);
+          return null;
+        }
+        return shader;
+      };
+
+      const link = () => {
+        const v = compile(gl.VERTEX_SHADER, VERTEX);
+        const f = compile(gl.FRAGMENT_SHADER, FRAGMENT);
+        const p = v && f ? gl.createProgram() : null;
+        if (!p) return null;
+        gl.attachShader(p, v);
+        gl.attachShader(p, f);
+        gl.linkProgram(p);
+        const uniforms = {};
+        const count = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS);
+        for (let i = 0; i < count; i++) {
+          const info = gl.getActiveUniform(p, i);
+          if (info) uniforms[info.name] = gl.getUniformLocation(p, info.name);
+        }
+        return { program: p, uniforms };
+      };
+
+      const shader = link();
+      if (!shader) return;
+
+      const vao = gl.createVertexArray();
+      gl.bindVertexArray(vao);
+
+      const cornerBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, cornerBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(0);
+      gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+
+      const particleBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, particleBuffer);
+      gl.enableVertexAttribArray(1);
+      gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 0, 0);
+      gl.vertexAttribDivisor(1, 1);
+
+      const seedBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, seedBuffer);
+      gl.enableVertexAttribArray(2);
+      gl.vertexAttribPointer(2, 4, gl.FLOAT, false, 0, 0);
+      gl.vertexAttribDivisor(2, 1);
+
+      const paletteTexture = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, paletteTexture);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA8,
+        PALETTE_SIZE,
+        2,
+        0,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        buildPalette(DEFAULT_COLORS)
+      );
+
+      const settings = {
+        count: 1600,
+        magnetRadius: 9,
+        ringRadius: 7,
+        particleSize: 1.0,
+        autoAnimate: true,
+        waveSpeed: 0.4,
+        waveAmplitude: 1,
+        waveCount: 3,
+        lerpSpeed: 0.05,
+        colorMode: 0,
+        colorSpeed: 0.05,
+        particleVariance: 1,
+        fieldStrength: 10,
+        ambient: 0.38,
+        pulseSpeed: 3,
+        depthFactor: 1.2,
+        particleShape: 0,
+        interactive: true,
+        clickBurst: true,
+        opacity: 0.98,
+        maxRatio: 2
+      };
+
+      const size = { width: 1, height: 1, ratio: 1 };
+      const cursor = { x: 0, y: 0, vx: 0, vy: 0, tx: 0, ty: 0, ready: false };
+      const pointer = { x: 0, y: 0, inside: false, down: false, moved: -Infinity };
+      let field = null;
+      let time = 0;
+      let hue = 0;
+      let charge = 0;
+      let introClock = 0;
+      let raf = 0;
+      let last = 0;
+      let pageVisible = true;
+
+      const buildField = (total, width, height) => {
+        const rand = random(1337);
+        const margin = 0.06;
+        const spanX = width * (1 + margin * 2);
+        const spanY = height * (1 + margin * 2);
+        const cols = Math.max(1, Math.ceil(Math.sqrt((total * spanX) / spanY)));
+        const rows = Math.max(1, Math.ceil(total / cols));
+        const cells = Array.from({ length: cols * rows }, (_, idx) => idx);
+        for (let idx = cells.length - 1; idx > 0; idx--) {
+          const swap = Math.floor(rand() * (idx + 1));
+          [cells[idx], cells[swap]] = [cells[swap], cells[idx]];
+        }
+        const depths = Array.from({ length: total }, () => rand() * 2 - 1).sort((a, b) => a - b);
+        const next = {
+          total,
+          width,
+          height,
+          homeX: new Float32Array(total),
+          homeY: new Float32Array(total),
+          band: new Float32Array(total),
+          phase: new Float32Array(total),
+          agility: new Float32Array(total),
+          delay: new Float32Array(total),
+          orbit: new Float32Array(total),
+          x: new Float32Array(total),
+          y: new Float32Array(total),
+          vx: new Float32Array(total),
+          vy: new Float32Array(total),
+          particles: new Float32Array(total * 4),
+          seeds: new Float32Array(total * 4)
+        };
+        for (let idx = 0; idx < total; idx++) {
+          const cell = cells[idx];
+          const hx = -width * margin + (((cell % cols) + 0.5 + (rand() - 0.5) * 0.85) / cols) * spanX;
+          const hy = -height * margin + ((Math.floor(cell / cols) + 0.5 + (rand() - 0.5) * 0.85) / rows) * spanY;
+          next.homeX[idx] = hx;
+          next.homeY[idx] = hy;
+          next.band[idx] = rand() * 2 - 1;
+          next.phase[idx] = rand() * Math.PI * 2;
+          next.agility[idx] = 0.75 + rand() * 0.5;
+          next.delay[idx] = rand();
+          next.x[idx] = hx;
+          next.y[idx] = hy + height * (0.45 + next.delay[idx] * 0.4);
+          next.seeds[idx * 4] = depths[idx];
+          next.seeds[idx * 4 + 1] = next.phase[idx];
+          next.seeds[idx * 4 + 2] = rand();
+          next.seeds[idx * 4 + 3] = rand();
+        }
+        gl.bindBuffer(gl.ARRAY_BUFFER, seedBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, next.seeds, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, particleBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, next.particles.byteLength, gl.DYNAMIC_DRAW);
+        return next;
+      };
+
+      const resize = () => {
+        const cssWidth = window.innerWidth;
+        const cssHeight = window.innerHeight;
+        const ratio = Math.min(window.devicePixelRatio || 1, settings.maxRatio);
+        const width = Math.round(cssWidth * ratio);
+        const height = Math.round(cssHeight * ratio);
+        if (canvas.width !== width || canvas.height !== height) {
+          canvas.width = width;
+          canvas.height = height;
+        }
+        size.width = cssWidth;
+        size.height = cssHeight;
+        size.ratio = width / cssWidth;
+        if (!cursor.ready) {
+          cursor.x = cursor.tx = cssWidth / 2;
+          cursor.y = cursor.ty = cssHeight / 2;
+          cursor.ready = true;
+        }
+        if (!field || field.total !== settings.count || Math.abs(field.width - cssWidth) > 1 || Math.abs(field.height - cssHeight) > 1) {
+          field = buildField(settings.count, cssWidth, cssHeight);
+        }
+      };
+
+      const simulate = dt => {
+        if (!field) return;
+        const unit = size.height / WORLD_HEIGHT;
+        const ringPx = settings.ringRadius * unit * (1 - 0.38 * charge);
+        const magnetPx = Math.max(settings.magnetRadius * unit, 1);
+        const spread = (5 / (settings.fieldStrength + 0.1)) * unit;
+        const wavePx = settings.waveAmplitude * unit * 0.5;
+        const omegaBase = 2.2 + settings.lerpSpeed * 80;
+        const spinRate = charge * 3;
+        const centerX = size.width / 2;
+        const centerY = size.height / 2;
+        const edge = magnetPx * 0.18;
+        const { homeX, homeY, band, phase, agility, delay, orbit, x, y, vx, vy, particles, seeds, total } = field;
+
+        for (let idx = 0; idx < total; idx++) {
+          const parallax = 1 - seeds[idx * 4] * 0.12 * settings.depthFactor;
+          const cx = centerX + (cursor.x - centerX) * parallax;
+          const cy = centerY + (cursor.y - centerY) * parallax;
+          const hx = homeX[idx];
+          const hy = homeY[idx] + Math.sin(time * 0.7 + phase[idx]) * unit * 0.12 * settings.waveAmplitude;
+          const dx = hx - cx;
+          const dy = hy - cy;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const capture = 1 - clamp((dist - (magnetPx - edge)) / (edge * 2), 0, 1);
+          const ease = capture * capture * (3 - 2 * capture);
+          let turn = orbit[idx] + spinRate * ease * dt;
+          turn -= Math.atan2(Math.sin(turn), Math.cos(turn)) * (1 - ease) * Math.min(1, dt * 2.5);
+          orbit[idx] = turn;
+          let tx = hx;
+          let ty = hy;
+          if (ease > 0 || Math.abs(turn) > 1e-4) {
+            const angle = Math.atan2(dy, dx) + turn;
+            const wave =
+              wavePx *
+              (0.6 * Math.sin(angle * settings.waveCount - time * settings.waveSpeed * 2) +
+                0.4 * Math.sin(phase[idx] + time * settings.waveSpeed * 1.3));
+            const radius = dist + (ringPx + wave + band[idx] * spread - dist) * ease;
+            tx = cx + Math.cos(angle) * radius;
+            ty = cy + Math.sin(angle) * radius;
+          }
+          const omega = introClock < delay[idx] * 0.9 ? 0 : omegaBase * agility[idx];
+          const damping = 1.64 * omega;
+          const stiffness = omega * omega;
+          const steps = Math.min(4, Math.max(1, Math.ceil(omega * dt * 2)));
+          const h = dt / steps;
+          for (let step = 0; step < steps; step++) {
+            vx[idx] += ((tx - x[idx]) * stiffness - vx[idx] * damping) * h;
+            vy[idx] += ((ty - y[idx]) * stiffness - vy[idx] * damping) * h;
+            x[idx] += vx[idx] * h;
+            y[idx] += vy[idx] * h;
+          }
+          particles[idx * 4] = x[idx];
+          particles[idx * 4 + 1] = y[idx];
+          particles[idx * 4 + 2] = vx[idx];
+          particles[idx * 4 + 3] = vy[idx];
+        }
+      };
+
+      const burst = strength => {
+        if (!field) return;
+        const unit = size.height / WORLD_HEIGHT;
+        const reach = Math.max(settings.magnetRadius, settings.ringRadius) * unit * 1.8;
+        const { x, y, vx, vy, agility, total } = field;
+        for (let idx = 0; idx < total; idx++) {
+          const dx = x[idx] - cursor.x;
+          const dy = y[idx] - cursor.y;
+          const dist = Math.sqrt(dx * dx + dy * dy) + 1e-3;
+          const kick = unit * 110 * strength * Math.exp(-Math.pow(dist / reach, 2)) * agility[idx];
+          vx[idx] += (dx / dist) * kick;
+          vy[idx] += (dy / dist) * kick;
+        }
+      };
+
+      const frame = now => {
+        raf = 0;
+        if (!field || !pageVisible) return;
+        const dt = clamp((now - last) / 1000 || 0, 0, 1 / 30);
+        last = Math.max(last, now);
+        time += dt;
+        hue += dt * settings.colorSpeed;
+        if (introClock < 3) introClock += dt;
+        charge = pointer.down ? Math.min(1, charge + dt / 0.9) : Math.max(0, charge - dt * 4);
+
+        const idle = performance.now() - pointer.moved > 2000 || !pointer.inside;
+        if (settings.autoAnimate && (idle || !settings.interactive)) {
+          cursor.tx = size.width / 2 + Math.sin(time * 0.45) * (size.width / 4);
+          cursor.ty = size.height / 2 + Math.cos(time * 0.8) * (size.height / 3.5);
+        } else if (settings.interactive && pointer.inside) {
+          cursor.tx = pointer.x;
+          cursor.ty = pointer.y;
+        }
+        cursor.vx += ((cursor.tx - cursor.x) * 49 - cursor.vx * 14) * dt;
+        cursor.vy += ((cursor.ty - cursor.y) * 49 - cursor.vy * 14) * dt;
+        cursor.x += cursor.vx * dt;
+        cursor.y += cursor.vy * dt;
+
+        simulate(dt);
+
+        const unit = size.height / WORLD_HEIGHT;
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+        gl.useProgram(shader.program);
+        gl.bindVertexArray(vao);
+        gl.bindBuffer(gl.ARRAY_BUFFER, particleBuffer);
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, field.particles);
+
+        const u = shader.uniforms;
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, paletteTexture);
+        gl.uniform1i(u.uPalette, 0);
+        gl.uniform2f(u.uSize, size.width, size.height);
+        gl.uniform1f(u.uPixel, size.ratio);
+        gl.uniform2f(u.uCursor, cursor.x, cursor.y);
+        gl.uniform1f(u.uRing, settings.ringRadius * unit * (1 - 0.38 * charge));
+        gl.uniform1f(u.uBand, Math.max(unit * 6, 1));
+        gl.uniform1f(u.uParticle, settings.particleSize * unit * 0.6);
+        gl.uniform1f(u.uAmbient, settings.ambient);
+        gl.uniform1f(u.uTime, time);
+        gl.uniform1f(u.uPulse, settings.pulseSpeed);
+        gl.uniform1f(u.uVariance, settings.particleVariance);
+        gl.uniform1f(u.uDepth, settings.depthFactor);
+        gl.uniform1f(u.uShape, settings.particleShape);
+        gl.uniform1f(u.uColorMode, settings.colorMode);
+        gl.uniform1f(u.uStops, DEFAULT_COLORS.length);
+        gl.uniform1f(u.uHue, hue);
+        gl.uniform1f(u.uReveal, introClock < 3 ? clamp(introClock / 0.6, 0, 1) : 1);
+        gl.uniform1f(u.uStreak, unit * 30);
+        gl.uniform1f(u.uCharge, charge);
+        gl.uniform1f(u.uOpacity, settings.opacity);
+        gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, field.total);
+
+        raf = requestAnimationFrame(frame);
+      };
+
+      const wake = () => {
+        if (raf || !pageVisible) return;
+        last = performance.now();
+        raf = requestAnimationFrame(frame);
+      };
+
+      window.addEventListener("pointermove", (e) => {
+        pointer.inside = true;
+        pointer.x = e.clientX;
+        pointer.y = e.clientY;
+        pointer.moved = performance.now();
+      }, { passive: true });
+
+      window.addEventListener("pointerdown", (e) => {
+        pointer.inside = true;
+        pointer.x = e.clientX;
+        pointer.y = e.clientY;
+        pointer.moved = performance.now();
+        if (settings.clickBurst) pointer.down = true;
+      }, { passive: true });
+
+      window.addEventListener("pointerup", () => {
+        if (pointer.down) burst(0.45 + charge);
+        pointer.down = false;
+      }, { passive: true });
+
+      window.addEventListener("resize", () => {
+        resize();
+        wake();
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        pageVisible = document.visibilityState !== "hidden";
+        if (pageVisible) wake();
+      });
+
+      resize();
+      wake();
+    }
+
+    // Start Antigravity Background
+    initAntigravity();
+  </script>
+</body>
+</html>

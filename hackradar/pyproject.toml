@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hackradar"
+version = "0.1.0"
+description = "Hackathon finder with ranked, eligibility-checked results."
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn>=0.30",
+    "pydantic>=2.9",
+    "httpx>=0.27",
+    "python-dotenv>=1.0",
+    "pytest>=8.3",
+]
+
+[project.scripts]
+hackradar = "hackradar.main:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["hackradar*"]
+
+[tool.pytest.ini_options]
+testpaths = ["hackradar/tests"]
