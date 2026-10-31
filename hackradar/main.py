@@ -69,11 +69,11 @@ async def search_hackathons(profile: Profile) -> StreamingResponse:
 
 
 @app.get("/", response_class=HTMLResponse)
-async def serve_index() -> FileResponse:
+async def serve_index() -> HTMLResponse:
     """Serve the static frontend."""
     if not INDEX_HTML.exists():
         raise HTTPException(status_code=404, detail="index.html not found")
-    return FileResponse(INDEX_HTML)
+    return HTMLResponse(content=INDEX_HTML.read_text(encoding="utf-8"))
 
 
 # Mount static assets if any
