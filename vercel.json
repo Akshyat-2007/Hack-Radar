@@ -1,14 +1,23 @@
 {
-  "version": 2,
-  "functions": {
-    "api/index.py": {
-      "maxDuration": 60
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "app": {
+      "root": ".",
+      "framework": "fastapi",
+      "entrypoint": "api/index.py"
+    },
+    "hackradar": {
+      "root": "hackradar",
+      "framework": "fastapi",
+      "entrypoint": "main.py"
     }
   },
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/api/index.py"
+      "destination": {
+        "service": "app"
+      }
     }
   ]
 }
